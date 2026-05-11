@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/harishreddy-g/CHATRIX#readme",
   "dependencies": {
+    "ejs": "^5.0.2",
     "express": "^5.2.1"
   },
   "devDependencies": {
