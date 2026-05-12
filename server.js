@@ -13,6 +13,12 @@ app.get("/", (req, res) => {
 app.get("/", (req, res) => {
     res.send("Welcome to Chatrix");
 });
+app.get("/login",(req,res) => {
+    res.render("login");
+});
+app.get("/signup",(req,res) =>{
+    res.render("signup");
+});
 app.get("/about", (req, res) => {
     res.send("This is my first chat application");
 });
