@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+app.use(express.static("public"));
 const port = 3000;
 
 
@@ -13,10 +14,10 @@ app.get("/", (req, res) => {
 app.get("/", (req, res) => {
     res.send("Welcome to Chatrix");
 });
-app.get("/login",(req,res) => {
+app.get("/login", (req, res) => {
     res.render("login");
 });
-app.get("/signup",(req,res) =>{
+app.get("/signup", (req, res) => {
     res.render("signup");
 });
 app.get("/about", (req, res) => {
