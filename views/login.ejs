@@ -13,17 +13,19 @@
         <h1>Login</h1>
         <form action="login">
             <lable>Email:</lable>
-            <input type="text" placeholder="Enter mail"><br><br>
+            <input id="Email" type="text" placeholder="Enter mail"><br><br>
             <label>Password:</label>
-            <input type="text" placeholder="Enter Password"><br><br>
-            <button type="submit">login</button>
-        </form><br><br>
+            <input id="Password" type="password" placeholder="Enter Password"><br><br>
+            <label><input id="showpassword" type="checkbox"> Show password</label><br><br>
+            <button id="loginBtn" type="submit">login</button>
+        </form><br>
+        <p id="message" style="color: brown;"></p> <br><br>
         <button><a href="signup">Signup</a></button><br><br>
         <button><a href="/">Home</a> </button><br><br>
         <button><a href="about">About</a></button>
 
     </div>
-
+    <script src="/JS/script.js"></script>
 </body>
 
 </html>

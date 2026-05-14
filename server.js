@@ -22,6 +22,7 @@ app.get("/signup", (req, res) => {
 });
 app.get("/about", (req, res) => {
     res.send("This is my first chat application");
+    
 });
 
 

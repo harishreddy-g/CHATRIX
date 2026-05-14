@@ -40,3 +40,7 @@ button:hover {
 h1 {
     text-align: center;
 }
+#message {
+    text-align: center;
+    margin-top: 10px;
+}
