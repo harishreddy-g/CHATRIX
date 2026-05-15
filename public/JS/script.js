@@ -1,22 +1,25 @@
 const loginBtn = document.querySelector("#loginBtn");
+const signupBtn = document.querySelector("#createBtn");
 const message = document.querySelector("#message");
-if (loginBtn) {
+const loginForm = document.querySelector("form[action='/login'], form[action='login']");
+const signupForm = document.querySelector("form[action='/signup']");
+
+if (loginBtn && loginForm) {
     loginBtn.addEventListener("click", (event) => {
         event.preventDefault();
-        const email = document.querySelector("#Email").value;
-        const password = document.querySelector("#Password").value;
+        const email = document.querySelector("#email").value;
+        const password = document.querySelector("#password").value;
         if (!message) return;
         if (email === "" || password === "") {
             message.textContent = "All fields are required!!";
-        } else {
-            message.textContent = "Logged in successfully";
+            return;
         }
+        message.textContent = "Logged in successfully";
+        loginForm.submit();
     });
 }
 
-const signupBtn = document.querySelector("#createBtn");
-
-if (signupBtn) {
+if (signupBtn && signupForm) {
     signupBtn.addEventListener("click", (event) => {
         event.preventDefault();
         const username = document.querySelector("#Username").value;
@@ -25,14 +28,14 @@ if (signupBtn) {
         if (!message) return;
         if (username === "" || password === "" || email === "") {
             message.textContent = "All fields are required!!";
-        }else if(password.length < 6){
+            return;
+        }
+        if (password.length < 6) {
             message.textContent = "Password must be at least 6 characters long!!";
+            return;
         }
-
-
-         else {
-            message.textContent = "Account created";
-        }
+        message.textContent = "Creating account...";
+        signupForm.submit();
     });
 }
 
