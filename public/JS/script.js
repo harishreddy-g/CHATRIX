@@ -1,7 +1,7 @@
 const loginBtn = document.querySelector("#loginBtn");
 const signupBtn = document.querySelector("#createBtn");
 const message = document.querySelector("#message");
-const loginForm = document.querySelector("form[action='/login'], form[action='login']");
+const loginForm = document.querySelector("form[action='/login']");
 const signupForm = document.querySelector("form[action='/signup']");
 
 if (loginBtn && loginForm) {
