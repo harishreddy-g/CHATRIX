@@ -1,38 +1,86 @@
-﻿exports.renderHome = (req, res) => {
+﻿const User = require("../models/Users");
+
+
+
+exports.renderHome = async(req, res) => {
   res.render('home');
 };
 
-exports.renderLogin = (req, res) => {
+exports.renderLogin =async (req, res) => {
   const username = req.query.username || '';
   res.render('login', { username });
 };
 
-exports.renderSignup = (req, res) => {
+exports.renderSignup =async (req, res) => {
   res.render('signup');
 };
 
-exports.renderAbout = (req, res) => {
-  res.send('This is my first chat application');
+exports.renderAbout = async (req, res) => {
+  res.render('about');
 };
 
-exports.signup = (req, res) => {
-  const { username, email, password } = req.body;
+exports.signup = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
 
-  if (!username || !email || !password) {
-    return res.send('All fields are required');
-  }
+        // Validate required fields
+        if (!username || !email || !password) {
+            return res.status(400).send('All fields are required');
+        }
 
-  if (password.length < 6) {
-    return res.send('Password too short');
-  }
+        // Validate password length
+        if (password.length < 6) {
+            return res.status(400).send('Password must be at least 6 characters long');
+        }
 
-  console.log('Signup details:', username, email);
-  return res.redirect(`/login?username=${encodeURIComponent(username)}`);
+        // Check if user already exists
+        const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+        if (existingUser) {
+            return res.status(400).send('Username or email already exists');
+        }
+
+        const newUser = new User({
+            username,
+            email,
+            password
+        });
+
+        await newUser.save();
+        console.log(`✓ User registered: ${username}`);
+        
+        return res.redirect(`/login?username=${encodeURIComponent(username)}`);
+
+    } catch (error) {
+        console.error('Signup error:', error.message);
+        res.status(500).send('Signup failed. Please try again.');
+    }
 };
 
-exports.login = (req, res) => {
-  const { email, password } = req.body;
+exports.login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-  console.log('Login details:', email, password);
-  res.send('Login Successful');
+        // Validate required fields
+        if (!email || !password) {
+            return res.status(400).send('Email and password are required');
+        }
+
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).send('Invalid email or password');
+        }
+
+        // Validate password (in production, use bcrypt)
+        if (user.password !== password) {
+            return res.status(401).send('Invalid email or password');
+        }
+
+        console.log(`✓ User logged in: ${user.username}`);
+        res.send(`Login successful! Welcome, ${user.username}`);
+
+    } catch (error) {
+        console.error('Login error:', error.message);
+        res.status(500).send('Login failed. Please try again.');
+    }
 };

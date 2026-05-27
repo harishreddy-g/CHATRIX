@@ -1,10 +1,11 @@
 const express = require('express');
 const path = require('path');
 const authRoutes = require('./routes/authRoutes');
+const connectDB = require('./config/db');
 
 const app = express();
 const port = process.env.PORT || 3000;
-
+connectDB();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
