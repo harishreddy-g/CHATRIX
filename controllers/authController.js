@@ -1,22 +1,23 @@
 ﻿const User = require("../models/Users");
+const bcrypt = require('bcrypt');
 
 
 
-exports.renderHome = async(req, res) => {
-  res.render('home');
+exports.renderHome = async (req, res) => {
+    res.render('home');
 };
 
-exports.renderLogin =async (req, res) => {
-  const username = req.query.username || '';
-  res.render('login', { username });
+exports.renderLogin = async (req, res) => {
+    const username = req.query.username || '';
+    res.render('login', { username });
 };
 
-exports.renderSignup =async (req, res) => {
-  res.render('signup');
+exports.renderSignup = async (req, res) => {
+    res.render('signup');
 };
 
 exports.renderAbout = async (req, res) => {
-  res.render('about');
+    res.render('about');
 };
 
 exports.signup = async (req, res) => {
@@ -39,15 +40,18 @@ exports.signup = async (req, res) => {
             return res.status(400).send('Username or email already exists');
         }
 
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const newUser = new User({
             username,
             email,
-            password
+            password: hashedPassword
         });
+
 
         await newUser.save();
         console.log(`✓ User registered: ${username}`);
-        
+
         return res.redirect(`/login?username=${encodeURIComponent(username)}`);
 
     } catch (error) {
@@ -72,9 +76,11 @@ exports.login = async (req, res) => {
         }
 
         // Validate password (in production, use bcrypt)
-        if (user.password !== password) {
-            return res.status(401).send('Invalid email or password');
+        const isMatch = await bcrypt.compare(password, User.password);
+        if (!isMatch) {
+            return res.send("Invalid Password!");
         }
+
 
         console.log(`✓ User logged in: ${user.username}`);
         res.send(`Login successful! Welcome, ${user.username}`);
