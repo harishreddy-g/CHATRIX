@@ -12,33 +12,22 @@
     <div class="container">
         <h1>Login</h1>
         <% if (username) { %>
-            <p id="welcomeMessage" style="color: brown;">Welcome <%= username %></p>
+            <p id="welcomeMessage">Welcome <%= username %></p>
         <% } %>
         <form action="/login" method="post">
-
-            <input id="email"
-             name="email" 
-             type="email" 
-             placeholder="Enter mail">
-            <br><br>
-
-            <input id="password" 
-            name="password"
-             type="password"
-             placeholder="Enter Password">
-
-            <br><br>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="Enter mail">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter Password">
             <label><input id="showpassword" type="checkbox"> Show password</label>
-            <br><br>
-            <button id="loginBtn" type="submit">
-                login</button>
-        </form><br>
-        <p id="message" style="color: brown;"></p> <br><br>
-        <a href="signup"><button>Signup</button></a>
-        <br><br>
-        <a href="/"><button>Home</button></a> 
-        <br><br>
-        <a href="about"><button>About</button></a>
+            <button id="loginBtn" type="submit">Login</button>
+        </form>
+        <p id="message"></p>
+        <nav class="nav-links">
+            <a href="signup"><button type="button">Signup</button></a>
+            <a href="/"><button type="button">Home</button></a>
+            <a href="about"><button type="button">About</button></a>
+        </nav>
 
     </div>
     <script src="/JS/script.js"></script>

@@ -9,24 +9,27 @@
 </head>
 
 <body>
-    <h1>Create Account</h1>
-    <div>
-        <h3><b>Enter signup details</b></h3>
-        <form action="/signup" method="post">
-            <label>Username</label>
-            <input id="Username" name="username" type="text" placeholder="Enter username"><br><br>
-            <label>Email:</label>
-            <input id="Email" name="email" type="text" placeholder="Enter mail address"><br><br>
-            <label>Password</label>
-            <input id="Password" name="password" type="password"  placeholder="Enter Password"><br><br>
-            <label><input id="showpassword" type="checkbox"> Show password</label><br><br>
-            <label>Profile picture</label>
-            <input id="Profile" type="file"><br><br>
-            <button id="createBtn" type="submit">create account</button>
-        </form><br>
-        <p id="message" style="color: brown;"></p><br><br>
-        <button><a href="/">Home</a> </button><br><br>
-        <button><a href="login">Login</a> </button>
+    <div class="container">
+        <h1>Create Account</h1>
+        <h3>Enter signup details</h3>
+        <form action="/signup" method="post" enctype="multipart/form-data">
+            <label for="Username">Username</label>
+            <input id="Username" name="username" type="text" placeholder="Enter username">
+            <label for="Email">Email</label>
+            <input id="Email" name="email" type="email" placeholder="Enter mail address">
+            <label for="Password">Password</label>
+            <input id="Password" name="password" type="password" placeholder="Enter Password">
+            <label><input id="showpassword" type="checkbox"> Show password</label>
+            <label for="Profile">Profile picture</label>
+            <input id="Profile" name="profilePicture" type="file" accept="image/jpeg,image/png,image/gif,image/webp">
+            <p class="form-note">Image files only (JPEG, PNG, GIF, or WebP).</p>
+            <button id="createBtn" type="submit">Create account</button>
+        </form>
+        <p id="message"></p>
+        <nav class="nav-links">
+            <a href="/"><button type="button">Home</button></a>
+            <a href="login"><button type="button">Login</button></a>
+        </nav>
     </div>
 
     <script src="/JS/script.js"></script>

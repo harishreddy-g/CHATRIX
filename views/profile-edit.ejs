@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - CHATRIX</title>
+    <link rel="stylesheet" href="/CSS/style.css">
+</head>
+<body>
+    <div class="container container-wide">
+        <h1>Edit Profile</h1>
+        <p class="subtitle">Update your account information</p>
+
+        <% if (errorMessage) { %>
+            <p class="error-message"><%= errorMessage %></p>
+        <% } %>
+
+        <form action="/profile/edit" method="post">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" value="<%= profile.username %>" required>
+
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" value="<%= profile.email %>" required>
+
+            <label for="bio">Bio</label>
+            <textarea id="bio" name="bio" rows="4" maxlength="300" placeholder="Tell others about yourself"><%= profile.bio %></textarea>
+
+            <p class="form-note">Leave the password fields blank to keep your current password.</p>
+
+            <label for="password">New Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter new password">
+
+            <label for="confirmPassword">Confirm New Password</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm new password">
+
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <nav class="nav-links">
+            <a href="/profile"><button type="button" class="btn-secondary">Cancel</button></a>
+        </nav>
+    </div>
+</body>
+</html>

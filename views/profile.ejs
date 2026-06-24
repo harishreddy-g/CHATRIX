@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - CHATRIX</title>
+    <link rel="stylesheet" href="/CSS/style.css">
+</head>
+<body>
+    <div class="container container-wide">
+        <h1>My Profile</h1>
+        <p class="subtitle">Your account details</p>
+
+        <% if (successMessage) { %>
+            <p class="success-message"><%= successMessage %></p>
+        <% } %>
+
+        <% if (profile.profilePicture) { %>
+            <div class="profile-avatar-wrap">
+                <img src="<%= profile.profilePicture %>" alt="Profile picture" class="profile-avatar">
+            </div>
+        <% } %>
+
+        <div class="profile-details">
+            <div class="detail-row">
+                <span class="detail-label">Username</span>
+                <span class="detail-value"><%= profile.username %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email</span>
+                <span class="detail-value"><%= profile.email %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Bio</span>
+                <span class="detail-value"><%= profile.bio || "No bio added yet." %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Friends</span>
+                <span class="detail-value"><%= profile.friendsCount %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Sent Requests</span>
+                <span class="detail-value"><%= profile.sentRequestsCount %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Received Requests</span>
+                <span class="detail-value"><%= profile.receivedRequestsCount %></span>
+            </div>
+            <% if (profile.memberSince) { %>
+                <div class="detail-row">
+                    <span class="detail-label">Member Since</span>
+                    <span class="detail-value"><%= new Date(profile.memberSince).toLocaleDateString() %></span>
+                </div>
+            <% } %>
+        </div>
+
+        <nav class="nav-links">
+            <a href="/profile/edit"><button type="button">Edit Profile</button></a>
+            <a href="/dashboard"><button type="button" class="btn-secondary">Back to Dashboard</button></a>
+        </nav>
+    </div>
+</body>
+</html>

@@ -21,6 +21,11 @@ exports.renderAbout = async (req, res) => {
     res.render('about');
 };
 
+exports.logout = (req, res) => {
+    res.clearCookie("token");
+    res.redirect("/login");
+};
+
 exports.signup = async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -42,11 +47,13 @@ exports.signup = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        const profilePicture = req.file ? `/uploads/profiles/${req.file.filename}` : '';
 
         const newUser = new User({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            profilePicture
         });
 
 
@@ -94,10 +101,14 @@ exports.login = async (req, res) => {
                 expiresIn: "1d"
             }
         );
-        res.json({
-            message: " token created successfully",
-            token: token
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000
         });
+
+        return res.redirect("/dashboard");
 
     } catch (error) {
         console.error('Login error:', error.message);

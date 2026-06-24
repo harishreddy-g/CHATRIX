@@ -25,6 +25,7 @@ if (signupBtn && signupForm) {
         const username = document.querySelector("#Username").value;
         const email = document.querySelector("#Email").value;
         const password = document.querySelector("#Password").value;
+        const profileInput = document.querySelector("#Profile");
         if (!message) return;
         if (username === "" || password === "" || email === "") {
             message.textContent = "All fields are required!!";
@@ -34,6 +35,13 @@ if (signupBtn && signupForm) {
             message.textContent = "Password must be at least 6 characters long!!";
             return;
         }
+        if (profileInput && profileInput.files.length > 0) {
+            const file = profileInput.files[0];
+            if (!file.type.startsWith("image/")) {
+                message.textContent = "Profile picture must be an image file.";
+                return;
+            }
+        }
         message.textContent = "Creating account...";
         signupForm.submit();
     });
@@ -42,7 +50,9 @@ if (signupBtn && signupForm) {
 const showpassword = document.querySelector("#showpassword");
 if (showpassword) {
     showpassword.addEventListener("change", () => {
-        const passwordInput = document.querySelector("#Password");
+        const passwordInput =
+            document.querySelector("#password") ||
+            document.querySelector("#Password");
         if (!passwordInput) return;
         passwordInput.type = showpassword.checked ? "text" : "password";
     });
