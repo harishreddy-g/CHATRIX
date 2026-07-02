@@ -41,7 +41,31 @@ const userSchema = new mongoose.Schema({
     profilePicture: {
         type: String,
         default: ''
-    }
+    },
+
+    content: [{
+        type: {
+            type: String,
+            enum: ['post', 'video'],
+            default: 'post'
+        },
+        title: {
+            type: String,
+            default: ''
+        },
+        body: {
+            type: String,
+            default: ''
+        },
+        mediaUrl: {
+            type: String,
+            default: ''
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, { timestamps: true });
 const User = mongoose.model("User", userSchema);
 module.exports = User;

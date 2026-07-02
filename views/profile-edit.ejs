@@ -15,7 +15,10 @@
             <p class="error-message"><%= errorMessage %></p>
         <% } %>
 
-        <form action="/profile/edit" method="post">
+        <form action="/profile/edit" method="post" enctype="multipart/form-data">
+            <label for="profilePicture">Profile Photo</label>
+            <input id="profilePicture" name="profilePicture" type="file" accept="image/jpeg,image/png,image/gif,image/webp">
+
             <label for="username">Username</label>
             <input id="username" name="username" type="text" value="<%= profile.username %>" required>
 

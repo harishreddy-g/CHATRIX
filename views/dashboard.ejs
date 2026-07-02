@@ -7,31 +7,143 @@
     <link rel="stylesheet" href="/CSS/style.css">
 </head>
 <body class="dashboard-page">
-    <a href="/profile" class="top-profile-link">View Profile</a>
-
-    <div class="container container-wide">
-        <h1>Dashboard</h1>
-        <p class="subtitle">Welcome back, <strong><%= username %></strong></p>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-value"><%= friendsCount %></span>
-                <span class="stat-label">Friends</span>
+    <div class="app-shell">
+        <header class="top-nav">
+            <div class="top-nav-left">
+                <a href="/dashboard" class="nav-item active">Home</a>
+                <form action="/dashboard" method="get" class="nav-search">
+                    <input name="search" type="text" placeholder="Search users..." value="<%= searchQuery %>">
+                    <button type="submit">Search</button>
+                </form>
             </div>
-            <div class="stat-card">
-                <span class="stat-value"><%= pendingRequestsCount %></span>
-                <span class="stat-label">Pending Requests</span>
+            <div class="top-nav-right">
+                <a href="/friends/requests/received" class="icon-button">📩</a>
+                <a href="/profile" class="icon-button">👤</a>
             </div>
-        </div>
+        </header>
 
-        <div class="info-card">
-            <p><span class="detail-label">Signed in as</span><br><%= email %></p>
-        </div>
+        <aside class="sidebar">
+            <section class="sidebar-card">
+                <h3>Friends</h3>
+                <% if (friends && friends.length > 0) { %>
+                    <ul class="sidebar-list">
+                        <% friends.slice(0, 5).forEach((friend) => { %>
+                            <li><strong><%= friend.username %></strong></li>
+                        <% }); %>
+                    </ul>
+                <% } else { %>
+                    <p class="muted-text">No friends yet. Use search to connect.</p>
+                <% } %>
+            </section>
 
-        <nav class="nav-links">
-            <a href="/profile/edit"><button type="button">Edit Profile</button></a>
-            <a href="/logout"><button type="button" class="btn-secondary">Logout</button></a>
-        </nav>
+            <section class="sidebar-card">
+                <h3>Groups</h3>
+                <ul class="sidebar-list">
+                    <li>General Chat</li>
+                    <li>Project Room</li>
+                    <li>Video Lovers</li>
+                </ul>
+            </section>
+
+        </aside>
+
+        <main class="main-panel">
+            <% if (successMessage) { %>
+                <p class="success-message"><%= successMessage %></p>
+            <% } %>
+            <% if (errorMessage) { %>
+                <p class="error-message"><%= errorMessage %></p>
+            <% } %>
+
+            <% if (searchQuery) { %>
+                <section class="panel-card search-results-card">
+                    <div class="panel-head">
+                        <div>
+                            <p class="eyebrow">Search results</p>
+                            <h3>Search for "<%= searchQuery %>"</h3>
+                        </div>
+                    </div>
+
+                    <% if (friendResults.length) { %>
+                        <h4>Your friends</h4>
+                        <ul class="search-list">
+                            <% friendResults.forEach((friend) => { %>
+                                <li class="search-item">
+                                    <div>
+                                        <strong><%= friend.username %></strong>
+                                        <span class="muted-text"><%= friend.email %></span>
+                                    </div>
+                                    <span class="tag">Friend</span>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    <% } %>
+
+                    <% if (searchResults.length) { %>
+                        <h4>Other users</h4>
+                        <ul class="search-list">
+                            <% searchResults.forEach((user) => { %>
+                                <li class="search-item">
+                                    <div>
+                                        <strong><%= user.username %></strong>
+                                        <span class="muted-text"><%= user.email %></span>
+                                    </div>
+                                    <form action="/friends/request/<%= user._id %>" method="post">
+                                        <button type="submit" class="btn-secondary small-btn">Send</button>
+                                    </form>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    <% } %>
+
+                    <% if (!friendResults.length && !searchResults.length) { %>
+                        <p class="muted-text">No friends or users matched your search.</p>
+                    <% } %>
+                </section>
+            <% } %>
+
+            <section class="feed-card">
+                <div class="feed-card-head">
+                    <div>
+                        <p class="eyebrow">Posts, blogs, news</p>
+                        <h1>Community Feed</h1>
+                    </div>
+                    <div class="feed-meta">
+                        <span><strong><%= friendsCount %></strong> friends</span>
+                        <span><strong><%= pendingRequestsCount %></strong> requests</span>
+                    </div>
+                </div>
+
+                <% if (feed.length) { %>
+                    <div class="feed-list">
+                        <% feed.forEach((item) => { %>
+                            <article class="feed-item">
+                                <div class="feed-item-head">
+                                    <% if (item.author.profilePicture) { %>
+                                        <img src="<%= item.author.profilePicture %>" alt="<%= item.author.username %>" class="avatar-small">
+                                    <% } else { %>
+                                        <div class="avatar-small avatar-placeholder"><%= item.author.username.charAt(0).toUpperCase() %></div>
+                                    <% } %>
+                                    <div>
+                                        <strong><%= item.author.username %></strong>
+                                        <span class="muted-text"><%= item.type === 'video' ? 'Video update' : 'Post' %></span>
+                                    </div>
+                                </div>
+                                <h2><%= item.title %></h2>
+                                <p><%= item.body %></p>
+                                <% if (item.mediaUrl) { %>
+                                    <a href="<%= item.mediaUrl %>" target="_blank" rel="noreferrer" class="video-link">
+                                        <%= item.type === 'video' ? 'Watch video' : 'View link' %>
+                                    </a>
+                                <% } %>
+                            </article>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <p class="muted-text">No content to show yet. Share a post or video to get started.</p>
+                <% } %>
+            </section>
+        </main>
     </div>
 </body>
 </html>
