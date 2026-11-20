@@ -4,14 +4,14 @@ const userController = require("../controllers/userController");
 const { requireAuthPage } = require("../middleware/authMiddleware");
 const { uploadProfilePicture } = require("../middleware/upload");
 
-router.use(requireAuthPage);
-
-router.get("/dashboard", userController.renderDashboard);
-router.post("/dashboard/content", userController.createContent);
-router.get("/profile", userController.renderProfile);
-router.get("/profile/edit", userController.renderProfileEdit);
+router.get("/dashboard", requireAuthPage, userController.renderDashboard);
+router.post("/dashboard/content", requireAuthPage, userController.createContent);
+router.get("/profile", requireAuthPage, userController.renderProfile);
+router.get("/users/:id", requireAuthPage, userController.renderUserProfile);
+router.get("/profile/edit", requireAuthPage, userController.renderProfileEdit);
 router.post(
     "/profile/edit",
+    requireAuthPage,
     (req, res, next) => {
         uploadProfilePicture(req, res, (error) => {
             if (error) {

@@ -12,40 +12,16 @@
             <div class="top-nav-left">
                 <a href="/dashboard" class="nav-item active">Home</a>
                 <form action="/dashboard" method="get" class="nav-search">
-                    <input name="search" type="text" placeholder="Search users..." value="<%= searchQuery %>">
+                    <input name="search" type="text" placeholder="Search people..." value="<%= searchQuery %>">
                     <button type="submit">Search</button>
                 </form>
             </div>
             <div class="top-nav-right">
-                <a href="/friends/requests/received" class="icon-button">📩</a>
-                <a href="/profile" class="icon-button">👤</a>
+                <a href="/chat" class="icon-button" title="Messages">💬</a>
+                <a href="/friends/requests/received" class="icon-button" title="Requests">📩</a>
+                <a href="/profile" class="icon-button" title="Profile">👤</a>
             </div>
         </header>
-
-        <aside class="sidebar">
-            <section class="sidebar-card">
-                <h3>Friends</h3>
-                <% if (friends && friends.length > 0) { %>
-                    <ul class="sidebar-list">
-                        <% friends.slice(0, 5).forEach((friend) => { %>
-                            <li><strong><%= friend.username %></strong></li>
-                        <% }); %>
-                    </ul>
-                <% } else { %>
-                    <p class="muted-text">No friends yet. Use search to connect.</p>
-                <% } %>
-            </section>
-
-            <section class="sidebar-card">
-                <h3>Groups</h3>
-                <ul class="sidebar-list">
-                    <li>General Chat</li>
-                    <li>Project Room</li>
-                    <li>Video Lovers</li>
-                </ul>
-            </section>
-
-        </aside>
 
         <main class="main-panel">
             <% if (successMessage) { %>
@@ -80,70 +56,189 @@
                     <% } %>
 
                     <% if (searchResults.length) { %>
-                        <h4>Other users</h4>
+                        <h4>People</h4>
                         <ul class="search-list">
-                            <% searchResults.forEach((user) => { %>
+                            <% searchResults.forEach((person) => { %>
                                 <li class="search-item">
                                     <div>
-                                        <strong><%= user.username %></strong>
-                                        <span class="muted-text"><%= user.email %></span>
+                                        <a class="user-link" href="/users/<%= person._id %>"><strong><%= person.username %></strong></a>
+                                        <span class="muted-text"><%= person.email %></span>
                                     </div>
-                                    <form action="/friends/request/<%= user._id %>" method="post">
-                                        <button type="submit" class="btn-secondary small-btn">Send</button>
-                                    </form>
+                                    <div class="search-actions">
+                                        <button type="button"
+                                                class="btn-secondary small-btn follow-btn <%= person.isFollowing ? 'is-following' : '' %>"
+                                                data-follow-id="<%= person._id %>">
+                                            <%= person.isFollowing ? 'Following' : 'Follow' %>
+                                        </button>
+                                    </div>
                                 </li>
                             <% }); %>
                         </ul>
                     <% } %>
 
                     <% if (!friendResults.length && !searchResults.length) { %>
-                        <p class="muted-text">No friends or users matched your search.</p>
+                        <p class="muted-text">No people matched your search.</p>
                     <% } %>
                 </section>
             <% } %>
 
-            <section class="feed-card">
-                <div class="feed-card-head">
+            <section class="stories-bar">
+                <details class="story-add">
+                    <summary class="story-add-btn">
+                        <span class="story-ring story-ring-add">＋</span>
+                        <span class="story-name">Add story</span>
+                    </summary>
+                    <form action="/stories" method="post" enctype="multipart/form-data" class="story-form panel-card">
+                        <label for="storyText">Text (optional)</label>
+                        <input id="storyText" name="text" type="text" maxlength="500" placeholder="Say something...">
+                        <label for="storyMedia">Photo (optional)</label>
+                        <input id="storyMedia" name="media" type="file" accept="image/*" class="file-input">
+                        <label for="storyBg">Background</label>
+                        <select id="storyBg" name="background">
+                            <option value="">Default</option>
+                            <option value="grad-1">Sunset</option>
+                            <option value="grad-2">Ocean</option>
+                            <option value="grad-3">Forest</option>
+                            <option value="grad-4">Berry</option>
+                        </select>
+                        <button type="submit" class="btn-block">Share story</button>
+                    </form>
+                </details>
+
+                <% stories.forEach((entry) => { %>
+                    <button type="button"
+                            class="story-item <%= entry.allViewed ? 'viewed' : '' %>"
+                            data-story-user="<%= entry.user.username %>"
+                            data-stories="<%= JSON.stringify(entry.stories) %>">
+                        <span class="story-ring">
+                            <% if (entry.user.profilePicture) { %>
+                                <img src="<%= entry.user.profilePicture %>" alt="<%= entry.user.username %>" class="story-avatar">
+                            <% } else { %>
+                                <span class="story-avatar avatar-placeholder"><%= entry.user.username.charAt(0).toUpperCase() %></span>
+                            <% } %>
+                        </span>
+                        <span class="story-name"><%= entry.user.username %></span>
+                    </button>
+                <% }); %>
+            </section>
+
+            <section class="panel-card composer-card">
+                <div class="panel-head">
                     <div>
-                        <p class="eyebrow">Posts, blogs, news</p>
-                        <h1>Community Feed</h1>
-                    </div>
-                    <div class="feed-meta">
-                        <span><strong><%= friendsCount %></strong> friends</span>
-                        <span><strong><%= pendingRequestsCount %></strong> requests</span>
+                        <p class="eyebrow">Create</p>
+                        <h3>Share a post</h3>
                     </div>
                 </div>
+                <form action="/posts" method="post" enctype="multipart/form-data" class="composer-form">
+                    <div class="composer-avatar">
+                        <% if (profilePicture) { %>
+                            <img src="<%= profilePicture %>" alt="<%= username %>" class="avatar-small">
+                        <% } else { %>
+                            <div class="avatar-small avatar-placeholder"><%= username.charAt(0).toUpperCase() %></div>
+                        <% } %>
+                    </div>
+                    <div class="composer-fields">
+                        <textarea name="caption" rows="2" placeholder="What's on your mind, <%= username %>?"></textarea>
+                        <div class="composer-media">
+                            <label class="media-picker">
+                                <span>🖼️ Photos</span>
+                                <input type="file" name="images" accept="image/*" multiple>
+                            </label>
+                            <input type="url" name="mediaUrl" placeholder="or paste a video / link URL">
+                        </div>
+                        <div class="composer-actions">
+                            <select name="type">
+                                <option value="post">Post</option>
+                                <option value="video">Video</option>
+                            </select>
+                            <button type="submit">Share</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
 
+            <section class="feed">
                 <% if (feed.length) { %>
-                    <div class="feed-list">
-                        <% feed.forEach((item) => { %>
-                            <article class="feed-item">
-                                <div class="feed-item-head">
+                    <% feed.forEach((item) => { %>
+                        <article class="post-card" data-post-id="<%= item._id %>">
+                            <header class="post-head">
+                                <a href="/users/<%= item.author._id %>" class="post-author">
                                     <% if (item.author.profilePicture) { %>
                                         <img src="<%= item.author.profilePicture %>" alt="<%= item.author.username %>" class="avatar-small">
                                     <% } else { %>
                                         <div class="avatar-small avatar-placeholder"><%= item.author.username.charAt(0).toUpperCase() %></div>
                                     <% } %>
-                                    <div>
+                                    <div class="post-author-meta">
                                         <strong><%= item.author.username %></strong>
-                                        <span class="muted-text"><%= item.type === 'video' ? 'Video update' : 'Post' %></span>
+                                        <span class="muted-text"><%= new Date(item.createdAt).toLocaleString() %></span>
                                     </div>
-                                </div>
-                                <h2><%= item.title %></h2>
-                                <p><%= item.body %></p>
-                                <% if (item.mediaUrl) { %>
-                                    <a href="<%= item.mediaUrl %>" target="_blank" rel="noreferrer" class="video-link">
-                                        <%= item.type === 'video' ? 'Watch video' : 'View link' %>
-                                    </a>
+                                </a>
+                                <% if (item.author._id.toString() === currentUser._id.toString()) { %>
+                                    <form action="/posts/<%= item._id %>/delete" method="post" class="post-delete">
+                                        <button type="submit" class="icon-ghost" title="Delete post">🗑️</button>
+                                    </form>
                                 <% } %>
-                            </article>
-                        <% }); %>
-                    </div>
+                            </header>
+
+                            <% if (item.caption) { %>
+                                <p class="post-caption"><strong><%= item.author.username %></strong> <%= item.caption %></p>
+                            <% } %>
+
+                            <% if (item.images && item.images.length) { %>
+                                <div class="post-media <%= item.images.length > 1 ? 'multi' : '' %>">
+                                    <% item.images.forEach((src) => { %>
+                                        <img src="<%= src %>" alt="Post image" class="post-image" loading="lazy">
+                                    <% }); %>
+                                </div>
+                            <% } %>
+
+                            <% if (item.mediaUrl) { %>
+                                <a href="<%= item.mediaUrl %>" target="_blank" rel="noreferrer" class="video-link">
+                                    <%= item.type === 'video' ? '▶ Watch video' : '🔗 View link' %>
+                                </a>
+                            <% } %>
+
+                            <div class="post-actions">
+                                <button type="button"
+                                        class="like-btn <%= item.liked ? 'liked' : '' %>"
+                                        data-like-id="<%= item._id %>"
+                                        aria-pressed="<%= item.liked %>">
+                                    <span class="like-icon"><%= item.liked ? '❤️' : '🤍' %></span>
+                                    <span class="like-count"><%= item.likeCount %></span>
+                                </button>
+                                <button type="button" class="comment-toggle" data-target="comments-<%= item._id %>">
+                                    💬 <span class="comment-count"><%= item.commentCount %></span>
+                                </button>
+                            </div>
+
+                            <div class="comments" id="comments-<%= item._id %>">
+                                <ul class="comment-list" data-comment-list="<%= item._id %>"></ul>
+                                <form class="comment-form" data-comment-form="<%= item._id %>">
+                                    <input type="text" name="body" placeholder="Add a comment..." maxlength="1000" autocomplete="off">
+                                    <button type="submit">Post</button>
+                                </form>
+                            </div>
+                        </article>
+                    <% }); %>
                 <% } else { %>
-                    <p class="muted-text">No content to show yet. Share a post or video to get started.</p>
+                    <div class="panel-card empty-feed">
+                        <p class="muted-text">Your feed is empty. Follow people or share your first post to get started.</p>
+                    </div>
                 <% } %>
             </section>
         </main>
     </div>
+
+    <div class="story-viewer" id="storyViewer" hidden>
+        <button type="button" class="story-close" id="storyClose">✕</button>
+        <div class="story-progress"><span id="storyProgress"></span></div>
+        <div class="story-stage" id="storyStage"></div>
+        <div class="story-nav">
+            <button type="button" id="storyPrev">‹</button>
+            <button type="button" id="storyNext">›</button>
+        </div>
+    </div>
+
+    <script src="/JS/feed.js"></script>
 </body>
 </html>

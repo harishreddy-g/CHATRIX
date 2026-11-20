@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - CHATRIX</title>
+    <link rel="stylesheet" href="/CSS/style.css">
+</head>
+<body class="chat-page"
+      data-user-id="<%= currentUser._id %>"
+      data-username="<%= currentUser.username %>"
+      data-avatar="<%= currentUser.profilePicture %>"
+      data-dm-target="<%= dmTarget %>">
+    <div class="chat-shell">
+        <aside class="chat-sidebar">
+            <div class="chat-sidebar-head">
+                <h3>Conversations</h3>
+                <a href="/dashboard" class="chat-back">&larr; Dashboard</a>
+            </div>
+            <div id="conversationList" class="conversation-list">
+                <p class="muted-text">Loading conversations&hellip;</p>
+            </div>
+        </aside>
+
+        <main class="chat-main">
+            <header class="chat-head">
+                <div id="chatTitle" class="chat-title">Select a conversation</div>
+                <div id="typingIndicator" class="typing-indicator"></div>
+            </header>
+            <div id="messageThread" class="message-thread"></div>
+            <form id="messageForm" class="message-form" autocomplete="off">
+                <input id="messageInput" type="text" placeholder="Type a message&hellip;" disabled>
+                <button id="sendBtn" type="submit" disabled>Send</button>
+            </form>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/JS/chat.js"></script>
+</body>
+</html>

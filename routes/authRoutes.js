@@ -10,7 +10,7 @@ router.get('/about', authController.renderAbout);
 router.post('/signup', (req, res, next) => {
     uploadProfilePicture(req, res, (error) => {
         if (error) {
-            return res.status(400).send(error.message);
+            return res.redirect('/signup?error=' + encodeURIComponent(error.message));
         }
         next();
     });

@@ -3,62 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - CHATRIX</title>
+    <title><%= profile.username %> - CHATRIX</title>
     <link rel="stylesheet" href="/CSS/style.css">
 </head>
-<body>
-    <div class="container container-wide">
-        <h1>My Profile</h1>
-        <p class="subtitle">Your account details</p>
+<body class="dashboard-page">
+    <div class="profile-shell">
+        <a href="/dashboard" class="back-link">← Back to feed</a>
 
         <% if (successMessage) { %>
             <p class="success-message"><%= successMessage %></p>
         <% } %>
 
-        <% if (profile.profilePicture) { %>
+        <section class="profile-header panel-card">
             <div class="profile-avatar-wrap">
-                <img src="<%= profile.profilePicture %>" alt="Profile picture" class="profile-avatar">
+                <% if (profile.profilePicture) { %>
+                    <img src="<%= profile.profilePicture %>" alt="<%= profile.username %>" class="profile-avatar">
+                <% } else { %>
+                    <div class="profile-avatar avatar-placeholder"><%= profile.username.charAt(0).toUpperCase() %></div>
+                <% } %>
             </div>
-        <% } %>
+            <div class="profile-identity">
+                <div class="profile-title-row">
+                    <h1><%= profile.username %></h1>
+                    <% if (profile.isOwn) { %>
+                        <a href="/profile/edit" class="btn-secondary small-btn">Edit profile</a>
+                        <a href="/logout" class="btn-secondary small-btn">Logout</a>
+                    <% } else { %>
+                        <button type="button"
+                                class="small-btn follow-btn <%= profile.isFollowing ? 'btn-secondary is-following' : '' %>"
+                                data-follow-id="<%= profile._id %>">
+                            <%= profile.isFollowing ? 'Following' : 'Follow' %>
+                        </button>
+                        <a href="/chat?dm=<%= profile._id %>" class="btn-secondary small-btn">Message</a>
+                    <% } %>
+                </div>
+                <p class="profile-bio"><%= profile.bio || "No bio yet." %></p>
+                <div class="profile-stats">
+                    <span><strong><%= profile.postsCount %></strong> posts</span>
+                    <span><strong><%= profile.followersCount %></strong> followers</span>
+                    <span><strong><%= profile.followingCount %></strong> following</span>
+                    <span><strong><%= profile.friendsCount %></strong> friends</span>
+                </div>
+            </div>
+        </section>
 
-        <div class="profile-details">
-            <div class="detail-row">
-                <span class="detail-label">Username</span>
-                <span class="detail-value"><%= profile.username %></span>
+        <section class="panel-card">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Gallery</p>
+                    <h3>Photos</h3>
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Email</span>
-                <span class="detail-value"><%= profile.email %></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Bio</span>
-                <span class="detail-value"><%= profile.bio || "No bio added yet." %></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Friends</span>
-                <span class="detail-value"><%= profile.friendsCount %></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Sent Requests</span>
-                <span class="detail-value"><%= profile.sentRequestsCount %></span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Received Requests</span>
-                <span class="detail-value"><%= profile.receivedRequestsCount %></span>
-            </div>
-            <% if (profile.memberSince) { %>
-                <div class="detail-row">
-                    <span class="detail-label">Member Since</span>
-                    <span class="detail-value"><%= new Date(profile.memberSince).toLocaleDateString() %></span>
+            <% if (profile.gallery.length) { %>
+                <div class="gallery-grid">
+                    <% profile.gallery.forEach((shot) => { %>
+                        <a href="#post-<%= shot.postId %>" class="gallery-item">
+                            <img src="<%= shot.src %>" alt="Post photo" loading="lazy">
+                        </a>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <p class="muted-text">No photos yet.</p>
+            <% } %>
+        </section>
+
+        <section class="feed">
+            <% if (profile.posts.length) { %>
+                <% profile.posts.forEach((item) => { %>
+                    <article class="post-card" id="post-<%= item._id %>" data-post-id="<%= item._id %>">
+                        <header class="post-head">
+                            <div class="post-author">
+                                <% if (item.author.profilePicture) { %>
+                                    <img src="<%= item.author.profilePicture %>" alt="<%= item.author.username %>" class="avatar-small">
+                                <% } else { %>
+                                    <div class="avatar-small avatar-placeholder"><%= item.author.username.charAt(0).toUpperCase() %></div>
+                                <% } %>
+                                <div class="post-author-meta">
+                                    <strong><%= item.author.username %></strong>
+                                    <span class="muted-text"><%= new Date(item.createdAt).toLocaleString() %></span>
+                                </div>
+                            </div>
+                            <% if (profile.isOwn) { %>
+                                <form action="/posts/<%= item._id %>/delete" method="post" class="post-delete">
+                                    <button type="submit" class="icon-ghost" title="Delete post">🗑️</button>
+                                </form>
+                            <% } %>
+                        </header>
+
+                        <% if (item.caption) { %>
+                            <p class="post-caption"><strong><%= item.author.username %></strong> <%= item.caption %></p>
+                        <% } %>
+
+                        <% if (item.images && item.images.length) { %>
+                            <div class="post-media <%= item.images.length > 1 ? 'multi' : '' %>">
+                                <% item.images.forEach((src) => { %>
+                                    <img src="<%= src %>" alt="Post image" class="post-image" loading="lazy">
+                                <% }); %>
+                            </div>
+                        <% } %>
+
+                        <% if (item.mediaUrl) { %>
+                            <a href="<%= item.mediaUrl %>" target="_blank" rel="noreferrer" class="video-link">
+                                <%= item.type === 'video' ? '▶ Watch video' : '🔗 View link' %>
+                            </a>
+                        <% } %>
+
+                        <div class="post-actions">
+                            <button type="button"
+                                    class="like-btn <%= item.liked ? 'liked' : '' %>"
+                                    data-like-id="<%= item._id %>"
+                                    aria-pressed="<%= item.liked %>">
+                                <span class="like-icon"><%= item.liked ? '❤️' : '🤍' %></span>
+                                <span class="like-count"><%= item.likeCount %></span>
+                            </button>
+                            <button type="button" class="comment-toggle" data-target="comments-<%= item._id %>">
+                                💬 <span class="comment-count"><%= item.commentCount %></span>
+                            </button>
+                        </div>
+
+                        <div class="comments" id="comments-<%= item._id %>">
+                            <ul class="comment-list" data-comment-list="<%= item._id %>"></ul>
+                            <form class="comment-form" data-comment-form="<%= item._id %>">
+                                <input type="text" name="body" placeholder="Add a comment..." maxlength="1000" autocomplete="off">
+                                <button type="submit">Post</button>
+                            </form>
+                        </div>
+                    </article>
+                <% }); %>
+            <% } else { %>
+                <div class="panel-card empty-feed">
+                    <p class="muted-text">No posts yet.</p>
                 </div>
             <% } %>
-        </div>
-
-        <nav class="nav-links">
-            <a href="/profile/edit"><button type="button">Edit Profile</button></a>
-            <a href="/logout"><button type="button" class="btn-secondary">Logout</button></a>
-            <a href="/dashboard"><button type="button" class="btn-secondary">Back to Dashboard</button></a>
-        </nav>
+        </section>
     </div>
+
+    <script src="/JS/feed.js"></script>
 </body>
 </html>

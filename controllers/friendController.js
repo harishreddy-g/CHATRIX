@@ -228,15 +228,96 @@ exports.acceptFriendRequest = async (req, res) => {
     }
 };
 
+exports.declineFriendRequest = async (req, res) => {
+    try {
+        const currentUserId = req.user.userId;
+        const { senderId } = req.params;
+        const wantsHtml = req.headers.accept && req.headers.accept.includes('text/html');
+
+        if (!mongoose.Types.ObjectId.isValid(senderId)) {
+            if (wantsHtml) {
+                return redirectWithMessage(req, res, 'Invalid sender id', true);
+            }
+            return res.status(400).json({ message: 'Invalid sender id' });
+        }
+
+        if (currentUserId.toString() === senderId.toString()) {
+            if (wantsHtml) {
+                return redirectWithMessage(req, res, 'Invalid friend request', true);
+            }
+            return res.status(400).json({ message: 'Invalid friend request' });
+        }
+
+        const currentUser = await User.findById(currentUserId).select('receivedRequests');
+
+        if (!currentUser) {
+            if (wantsHtml) {
+                res.clearCookie('token');
+                return res.redirect('/login');
+            }
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!hasUserId(currentUser.receivedRequests, senderId)) {
+            if (wantsHtml) {
+                return redirectWithMessage(req, res, 'No pending friend request found', true);
+            }
+            return res.status(404).json({ message: 'No pending friend request found' });
+        }
+
+        await User.bulkWrite([
+            {
+                updateOne: {
+                    filter: { _id: currentUser._id },
+                    update: { $pull: { receivedRequests: senderId } }
+                }
+            },
+            {
+                updateOne: {
+                    filter: { _id: senderId },
+                    update: { $pull: { sentRequests: currentUserId } }
+                }
+            }
+        ]);
+
+        if (wantsHtml) {
+            return redirectWithMessage(req, res, 'Friend request declined');
+        }
+
+        return res.status(200).json({ message: 'Friend request declined' });
+    } catch (error) {
+        console.error('Decline friend request error:', error.message);
+        if (req.headers.accept && req.headers.accept.includes('text/html')) {
+            return redirectWithMessage(req, res, 'Unable to decline friend request', true);
+        }
+        return res.status(500).json({ message: 'Unable to decline friend request' });
+    }
+};
+
 exports.getReceivedRequests = async (req, res) => {
     try {
+        const wantsHtml = req.headers.accept && req.headers.accept.includes('text/html');
         const user = await User.findById(req.user.userId)
             .select('receivedRequests')
-            .populate('receivedRequests', publicUserFields)
+            .populate('receivedRequests', `${publicUserFields} profilePicture`)
             .lean();
 
         if (!user) {
+            if (wantsHtml) {
+                res.clearCookie('token');
+                return res.redirect('/login');
+            }
             return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (wantsHtml) {
+            return res.render('requests', {
+                mode: 'received',
+                title: 'Friend Requests',
+                requests: user.receivedRequests,
+                successMessage: req.query.success ? decodeURIComponent(req.query.success) : '',
+                errorMessage: req.query.error ? decodeURIComponent(req.query.error) : ''
+            });
         }
 
         return res.status(200).json({
@@ -251,13 +332,28 @@ exports.getReceivedRequests = async (req, res) => {
 
 exports.getSentRequests = async (req, res) => {
     try {
+        const wantsHtml = req.headers.accept && req.headers.accept.includes('text/html');
         const user = await User.findById(req.user.userId)
             .select('sentRequests')
-            .populate('sentRequests', publicUserFields)
+            .populate('sentRequests', `${publicUserFields} profilePicture`)
             .lean();
 
         if (!user) {
+            if (wantsHtml) {
+                res.clearCookie('token');
+                return res.redirect('/login');
+            }
             return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (wantsHtml) {
+            return res.render('requests', {
+                mode: 'sent',
+                title: 'Sent Requests',
+                requests: user.sentRequests,
+                successMessage: req.query.success ? decodeURIComponent(req.query.success) : '',
+                errorMessage: req.query.error ? decodeURIComponent(req.query.error) : ''
+            });
         }
 
         return res.status(200).json({

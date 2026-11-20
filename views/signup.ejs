@@ -4,33 +4,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup</title>
+    <title>Signup - CHATRIX</title>
     <link rel="stylesheet" href="/CSS/style.css">
 </head>
 
-<body>
-    <div class="container">
-        <h1>Create Account</h1>
-        <h3>Enter signup details</h3>
-        <form action="/signup" method="post" enctype="multipart/form-data">
-            <label for="Username">Username</label>
-            <input id="Username" name="username" type="text" placeholder="Enter username">
-            <label for="Email">Email</label>
-            <input id="Email" name="email" type="email" placeholder="Enter mail address">
-            <label for="Password">Password</label>
-            <input id="Password" name="password" type="password" placeholder="Enter Password">
-            <label><input id="showpassword" type="checkbox"> Show password</label>
-            <label for="Profile">Profile picture</label>
-            <input id="Profile" name="profilePicture" type="file" accept="image/jpeg,image/png,image/gif,image/webp">
-            <p class="form-note">Image files only (JPEG, PNG, GIF, or WebP).</p>
-            <button id="createBtn" type="submit">Create account</button>
-        </form>
-        <p id="message"></p>
-        <nav class="nav-links">
-            <a href="/"><button type="button">Home</button></a>
-            <a href="login"><button type="button">Login</button></a>
-        </nav>
-    </div>
+<body class="auth-page">
+    <main class="auth-wrap">
+        <section class="auth-card">
+            <div class="auth-brand">
+                <span class="auth-logo">💬</span>
+                <span class="auth-name">CHATRIX</span>
+            </div>
+
+            <header class="auth-header">
+                <h1 class="auth-title">Create your account</h1>
+                <p class="auth-subtitle">Join CHATRIX and start connecting</p>
+            </header>
+
+            <p id="message" class="form-message <%= error ? 'is-error' : '' %>" role="alert" aria-live="polite"><%= error %></p>
+
+            <form action="/signup" method="post" enctype="multipart/form-data" novalidate>
+                <div class="field">
+                    <label class="field-label" for="Username">Username</label>
+                    <div class="input-wrap">
+                        <span class="input-icon" aria-hidden="true">👤</span>
+                        <input class="field-input" id="Username" name="username" type="text" placeholder="Choose a username" autocomplete="username" required>
+                    </div>
+                    <span class="field-error" id="username-error"></span>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="Email">Email</label>
+                    <div class="input-wrap">
+                        <span class="input-icon" aria-hidden="true">✉️</span>
+                        <input class="field-input" id="Email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+                    </div>
+                    <span class="field-error" id="email-error"></span>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="Password">Password</label>
+                    <div class="input-wrap">
+                        <span class="input-icon" aria-hidden="true">🔒</span>
+                        <input class="field-input" id="Password" name="password" type="password" placeholder="At least 6 characters" autocomplete="new-password" minlength="6" required>
+                        <button type="button" class="toggle-password" data-target="Password" aria-label="Show password">👁️</button>
+                    </div>
+                    <span class="field-error" id="password-error"></span>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="Profile">Profile picture <span class="optional">(optional)</span></label>
+                    <input class="file-input" id="Profile" name="profilePicture" type="file" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <p class="form-note">JPEG, PNG, GIF, or WebP · up to 5MB</p>
+                    <span class="field-error" id="profile-error"></span>
+                </div>
+
+                <div class="auth-actions">
+                    <button id="createBtn" type="submit" class="btn-block">Create account</button>
+                </div>
+            </form>
+
+            <footer class="auth-footer">
+                <span>Already have an account?</span>
+                <a class="auth-link" href="/login">Log in</a>
+                <span class="auth-sep">·</span>
+                <a class="auth-link" href="/">Home</a>
+            </footer>
+        </section>
+    </main>
 
     <script src="/JS/script.js"></script>
 </body>

@@ -10,11 +10,13 @@ exports.renderHome = async (req, res) => {
 
 exports.renderLogin = async (req, res) => {
     const username = req.query.username || '';
-    res.render('login', { username });
+    const error = req.query.error || '';
+    res.render('login', { username, error });
 };
 
 exports.renderSignup = async (req, res) => {
-    res.render('signup');
+    const error = req.query.error || '';
+    res.render('signup', { error });
 };
 
 exports.renderAbout = async (req, res) => {
@@ -28,22 +30,23 @@ exports.logout = (req, res) => {
 
 exports.signup = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, password } = req.body;
+        const email = (req.body.email || '').trim().toLowerCase();
 
         // Validate required fields
         if (!username || !email || !password) {
-            return res.status(400).send('All fields are required');
+            return res.redirect('/signup?error=' + encodeURIComponent('All fields are required'));
         }
 
         // Validate password length
         if (password.length < 6) {
-            return res.status(400).send('Password must be at least 6 characters long');
+            return res.redirect('/signup?error=' + encodeURIComponent('Password must be at least 6 characters long'));
         }
 
         // Check if user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
-            return res.status(400).send('Username or email already exists');
+            return res.redirect('/signup?error=' + encodeURIComponent('Username or email already exists'));
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -64,29 +67,30 @@ exports.signup = async (req, res) => {
 
     } catch (error) {
         console.error('Signup error:', error.message);
-        res.status(500).send('Signup failed. Please try again.');
+        return res.redirect('/signup?error=' + encodeURIComponent('Signup failed. Please try again.'));
     }
 };
 
 exports.login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { password } = req.body;
+        const email = (req.body.email || '').trim().toLowerCase();
 
         // Validate required fields
         if (!email || !password) {
-            return res.status(400).send('Email and password are required');
+            return res.redirect('/login?error=' + encodeURIComponent('Email and password are required'));
         }
 
         // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(401).send('Invalid email or password');
+            return res.redirect('/login?error=' + encodeURIComponent('Invalid email or password'));
         }
 
         // Validate password using the stored hash
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).send('Invalid email or password');
+            return res.redirect('/login?error=' + encodeURIComponent('Invalid email or password'));
         }
 
         console.log(`✓ User logged in: ${user.username}`);
@@ -112,6 +116,6 @@ exports.login = async (req, res) => {
 
     } catch (error) {
         console.error('Login error:', error.message);
-        res.status(500).send('Login failed. Please try again.');
+        return res.redirect('/login?error=' + encodeURIComponent('Login failed. Please try again.'));
     }
 };

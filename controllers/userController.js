@@ -1,24 +1,73 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/Users");
+const Post = require("../models/Post");
+const Comment = require("../models/Comment");
+const { fetchStoryFeed } = require("./storyController");
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const buildProfileView = (user) => ({
-    username: user.username,
-    email: user.email,
-    bio: user.bio || "",
-    profilePicture: user.profilePicture || "",
-    friendsCount: user.friends.length,
-    sentRequestsCount: user.sentRequests.length,
-    receivedRequestsCount: user.receivedRequests.length,
-    memberSince: user.createdAt
-});
+const buildFeedPosts = async (postDocs, currentUserId) => {
+    const ids = postDocs.map((post) => post._id);
+    let countMap = new Map();
+    if (ids.length) {
+        const counts = await Comment.aggregate([
+            { $match: { post: { $in: ids } } },
+            { $group: { _id: "$post", count: { $sum: 1 } } }
+        ]);
+        countMap = new Map(counts.map((c) => [c._id.toString(), c.count]));
+    }
+
+    return postDocs.map((post) => ({
+        _id: post._id,
+        caption: post.caption,
+        images: post.images || [],
+        type: post.type,
+        mediaUrl: post.mediaUrl || "",
+        createdAt: post.createdAt,
+        author: post.author,
+        likeCount: (post.likes || []).length,
+        liked: (post.likes || []).some((id) => id.toString() === currentUserId.toString()),
+        commentCount: countMap.get(post._id.toString()) || 0
+    }));
+};
+
+const buildProfileData = async (targetId, currentUserId) => {
+    const target = await User.findById(targetId).select("-password").lean();
+    if (!target) return null;
+
+    const postDocs = await Post.find({ author: targetId })
+        .populate("author", "username profilePicture")
+        .sort({ createdAt: -1 })
+        .lean();
+    const posts = await buildFeedPosts(postDocs, currentUserId);
+
+    const gallery = [];
+    posts.forEach((post) => (post.images || []).forEach((src) => gallery.push({ src, postId: post._id })));
+
+    return {
+        _id: target._id,
+        username: target.username,
+        email: target.email,
+        bio: target.bio || "",
+        profilePicture: target.profilePicture || "",
+        friendsCount: (target.friends || []).length,
+        followingCount: (target.following || []).length,
+        followersCount: (target.followers || []).length,
+        postsCount: posts.length,
+        memberSince: target.createdAt,
+        isOwn: targetId.toString() === currentUserId.toString(),
+        isFollowing: (target.followers || []).some((id) => id.toString() === currentUserId.toString()),
+        posts,
+        gallery
+    };
+};
 
 exports.renderDashboard = async (req, res) => {
     try {
         const searchTerm = (req.query.search || req.query.q || "").trim();
-        const user = await User.findById(req.user.userId)
-            .select("username email profilePicture friends receivedRequests sentRequests")
+        const currentUserId = req.user.userId;
+        const user = await User.findById(currentUserId)
+            .select("username email profilePicture friends receivedRequests sentRequests following followers")
             .populate("friends", "username email profilePicture")
             .populate("receivedRequests", "username email profilePicture")
             .populate("sentRequests", "username email profilePicture")
@@ -38,10 +87,10 @@ exports.renderDashboard = async (req, res) => {
             );
 
             const candidates = await User.find({
-                _id: { $ne: req.user.userId },
+                _id: { $ne: currentUserId },
                 $or: [{ username: searchRegex }, { email: searchRegex }]
             })
-                .select("username email profilePicture")
+                .select("username email profilePicture followers")
                 .limit(12)
                 .lean();
 
@@ -51,43 +100,53 @@ exports.renderDashboard = async (req, res) => {
                 ...user.sentRequests.map((request) => request._id.toString())
             ]);
 
-            searchResults = candidates.filter((candidate) => !excludedIds.has(candidate._id.toString()));
+            searchResults = candidates
+                .filter((candidate) => !excludedIds.has(candidate._id.toString()))
+                .map((candidate) => ({
+                    _id: candidate._id,
+                    username: candidate.username,
+                    email: candidate.email,
+                    profilePicture: candidate.profilePicture || "",
+                    isFollowing: (candidate.followers || []).some((id) => id.toString() === currentUserId.toString())
+                }));
         }
 
-        const feedUsers = await User.find({
-            _id: { $ne: req.user.userId },
-            content: { $exists: true, $ne: [] }
-        })
-            .select("username profilePicture content")
-            .sort({ updatedAt: -1 })
-            .limit(12)
+        const stories = await fetchStoryFeed(currentUserId);
+
+        const authorIds = [
+            ...(user.following || []).map((id) => id.toString()),
+            currentUserId.toString()
+        ];
+
+        const postDocs = await Post.find({ author: { $in: authorIds } })
+            .populate("author", "username profilePicture")
+            .sort({ createdAt: -1 })
+            .limit(25)
             .lean();
 
-        const contentFeed = feedUsers
-            .flatMap((author) => (author.content || []).map((item) => ({
-                ...item,
-                author: {
-                    _id: author._id,
-                    username: author.username,
-                    profilePicture: author.profilePicture
-                }
-            })))
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 12);
+        const feed = await buildFeedPosts(postDocs, currentUserId);
 
         res.render("dashboard", {
+            currentUser: {
+                _id: user._id,
+                username: user.username,
+                profilePicture: user.profilePicture || ""
+            },
             username: user.username,
             email: user.email,
             profilePicture: user.profilePicture || "",
             friendsCount: user.friends.length,
             friends: user.friends,
+            followingCount: (user.following || []).length,
+            followersCount: (user.followers || []).length,
             pendingRequestsCount: user.receivedRequests.length,
             receivedRequests: user.receivedRequests,
             sentRequests: user.sentRequests,
             searchQuery: searchTerm,
             searchResults,
             friendResults,
-            feed: contentFeed,
+            stories,
+            feed,
             successMessage: req.query.success ? decodeURIComponent(req.query.success) : "",
             errorMessage: req.query.error ? decodeURIComponent(req.query.error) : ""
         });
@@ -99,21 +158,35 @@ exports.renderDashboard = async (req, res) => {
 
 exports.renderProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId)
-            .select("-password")
-            .lean();
-
-        if (!user) {
+        const profile = await buildProfileData(req.user.userId, req.user.userId);
+        if (!profile) {
             res.clearCookie("token");
             return res.redirect("/login");
         }
 
         res.render("profile", {
-            profile: buildProfileView(user),
+            profile,
+            currentUser: { _id: req.user.userId },
             successMessage: req.query.updated === "1" ? "Profile updated successfully." : ""
         });
     } catch (error) {
         console.error("Profile error:", error.message);
+        res.status(500).send("Unable to load profile.");
+    }
+};
+
+exports.renderUserProfile = async (req, res) => {
+    try {
+        const profile = await buildProfileData(req.params.id, req.user.userId);
+        if (!profile) return res.status(404).send("User not found.");
+
+        res.render("profile", {
+            profile,
+            currentUser: { _id: req.user.userId },
+            successMessage: ""
+        });
+    } catch (error) {
+        console.error("User profile error:", error.message);
         res.status(500).send("Unable to load profile.");
     }
 };

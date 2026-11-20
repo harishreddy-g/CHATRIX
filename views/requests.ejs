@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - CHATRIX</title>
+    <link rel="stylesheet" href="/CSS/style.css">
+</head>
+<body>
+    <div class="container container-wide">
+        <h1><%= title %></h1>
+        <p class="subtitle"><%= mode === 'received' ? 'People who want to connect with you' : 'Requests you have sent' %></p>
+
+        <% if (successMessage) { %>
+            <p class="success-message"><%= successMessage %></p>
+        <% } %>
+        <% if (errorMessage) { %>
+            <p class="error-message"><%= errorMessage %></p>
+        <% } %>
+
+        <% if (requests && requests.length > 0) { %>
+            <ul class="search-list">
+                <% requests.forEach((user) => { %>
+                    <li class="search-item">
+                        <div class="request-user">
+                            <% if (user.profilePicture) { %>
+                                <img src="<%= user.profilePicture %>" alt="<%= user.username %>" class="avatar-small">
+                            <% } else { %>
+                                <div class="avatar-small avatar-placeholder"><%= user.username.charAt(0).toUpperCase() %></div>
+                            <% } %>
+                            <div>
+                                <strong><%= user.username %></strong>
+                                <span class="muted-text"><%= user.email %></span>
+                            </div>
+                        </div>
+                        <% if (mode === 'received') { %>
+                            <div class="request-actions">
+                                <form action="/friends/accept/<%= user._id %>" method="post">
+                                    <button type="submit" class="small-btn">Accept</button>
+                                </form>
+                                <form action="/friends/decline/<%= user._id %>" method="post">
+                                    <button type="submit" class="btn-secondary small-btn">Decline</button>
+                                </form>
+                            </div>
+                        <% } else { %>
+                            <span class="tag">Pending</span>
+                        <% } %>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <p class="muted-text"><%= mode === 'received' ? 'No pending friend requests.' : 'You have not sent any friend requests.' %></p>
+        <% } %>
+
+        <nav class="nav-links">
+            <a href="/dashboard"><button type="button" class="btn-secondary">Back to Dashboard</button></a>
+            <% if (mode === 'received') { %>
+                <a href="/friends/requests/sent"><button type="button" class="btn-secondary">View Sent</button></a>
+            <% } else { %>
+                <a href="/friends/requests/received"><button type="button" class="btn-secondary">View Received</button></a>
+            <% } %>
+        </nav>
+    </div>
+</body>
+</html>
